@@ -7,6 +7,7 @@ permissions:
   contents: read
 jobs:
   linux:
+    timeout-minutes: 20
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -29,8 +30,8 @@ jobs:
           sparse-checkout: contribution-tests
       - name: Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libsdl2-dev libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev libglu1-mesa-dev cmake libvlc-dev libvlccore-dev vlc-bin xvfb xauth
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y libsdl2-dev libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev libglu1-mesa-dev cmake libvlc-dev libvlccore-dev vlc-bin xvfb xauth
       - name: Build
         run: |
           cmake -S source -B build -DGL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON

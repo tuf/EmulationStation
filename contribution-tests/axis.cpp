@@ -13,7 +13,7 @@
 #include <stdexcept>
 static int checks;
 static void require(bool b,const char* why){if(!b)throw std::runtime_error(why);++checks;}
-struct Gui:GuiComponent{int calls=0;Gui(Window*w):GuiComponent(w){} bool input(InputConfig*,Input)override{++calls;return true;}};
+struct Gui:GuiComponent{int calls=0;bool consume=false;Gui(Window*w):GuiComponent(w){} bool input(InputConfig*,Input)override{++calls;return consume;}};
 struct Saver:Window::ScreenSaver{
  bool active=false;int stops=0;void startScreenSaver(SystemData*)override{active=true;} void stopScreenSaver(bool)override{active=false;++stops;}
  void renderScreenSaver()override{} bool allowSleep()override{return true;} void update(int)override{} bool isScreenSaverActive()override{return active;}
@@ -35,6 +35,7 @@ extern "C" int __wrap_main(int argc,char**argv){try{
  }
  if(patched){
   reset(false,false);int n=gui->calls;w.input(&pad,Input(0,TYPE_AXIS,2,-1,false));require(gui->calls==n+1 && w.mTimeSinceLastInput==1234,"configuration dialog did not receive unused axis");
+  gui->consume=true;reset(false,false);n=gui->calls;w.input(&pad,Input(0,TYPE_AXIS,2,1,false));require(gui->calls==n+1 && w.mTimeSinceLastInput==0,"consumed configuration input must count as activity");gui->consume=false;
   reset(false,true);n=gui->calls;w.input(&pad,Input(0,TYPE_AXIS,2,1,false));require(w.isSleeping() && w.mTimeSinceLastInput==1234 && gui->calls==n,"unused axis woke sleeping UI");
  }
  for(int value:{-1,0,1}){reset(false,false);int n=gui->calls;w.input(&pad,Input(0,TYPE_AXIS,0,value,false));require(w.mTimeSinceLastInput==0 && gui->calls==n+1,"mapped axis or release was filtered");}
