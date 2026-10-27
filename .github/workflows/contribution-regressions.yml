@@ -41,6 +41,7 @@ jobs:
           SDL_AUDIODRIVER: dummy
           LIBGL_ALWAYS_SOFTWARE: 1
         run: |
+          set -euo pipefail
           mkdir -p validation fixture-home/.emulationstation
           cp harness/contribution-tests/* validation/
           case "$POLICY" in
@@ -56,6 +57,7 @@ jobs:
             mode=baseline
             if [ "$POLICY" = cache ]; then mode=cached; fi
             xvfb-run -a "results/$POLICY/splash" "$PWD/fixture-home" "$mode" | tee "results/$POLICY/splash-verification.log"
+            grep -q '"passed":true' "results/$POLICY/splash-verification.log"
           fi
       - uses: actions/upload-artifact@v4
         if: always()

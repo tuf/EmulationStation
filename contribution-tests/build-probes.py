@@ -2,6 +2,8 @@
 import json,shlex,subprocess,sys
 from pathlib import Path
 root=Path(sys.argv[1]).resolve();policy=sys.argv[2];tests=sys.argv[3:];source=root/'source';build=root/'build';validation=root/'validation';out=root/'results'/policy;out.mkdir(parents=True,exist_ok=True)
+resources=out/'resources'
+if not resources.exists():resources.symlink_to(source/'resources',target_is_directory=True)
 commands=json.loads((build/'compile_commands.json').read_text());cwd=build/'es-app';link=shlex.split((cwd/'CMakeFiles/emulationstation.dir/link.txt').read_text())
 for name in tests:
  target='es-app/src/SystemData.cpp' if name=='discovery' else 'es-core/src/Window.cpp'
