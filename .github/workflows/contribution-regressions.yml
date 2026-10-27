@@ -1,0 +1,66 @@
+name: Contribution regressions
+on:
+  push:
+    branches: [validation/contribution-tests]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {ref: d9efd746a983a382d9fe031b5336317455dd0d4d, policy: baseline}
+          - {ref: fix/screensaver-axis, policy: axis}
+          - {ref: fix/empty-system-themes, policy: empty}
+          - {ref: fix/loading-splash-cache, policy: cache}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+          path: source
+          submodules: true
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: harness
+          sparse-checkout: contribution-tests
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev libglu1-mesa-dev cmake libvlc-dev libvlccore-dev vlc-bin xvfb xauth
+      - name: Build
+        run: |
+          cmake -S source -B build -DGL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build build -j2
+      - name: Regression probes
+        env:
+          POLICY: ${{ matrix.policy }}
+          SDL_AUDIODRIVER: dummy
+          LIBGL_ALWAYS_SOFTWARE: 1
+        run: |
+          mkdir -p validation fixture-home/.emulationstation
+          cp harness/contribution-tests/* validation/
+          case "$POLICY" in
+            baseline) probes="axis discovery splash" ;;
+            axis) probes="axis" ;;
+            empty) probes="discovery" ;;
+            cache) probes="splash" ;;
+          esac
+          python3 validation/build-probes.py "$PWD" "$POLICY" $probes
+          if [ "$POLICY" = baseline ] || [ "$POLICY" = axis ]; then python3 validation/run-headless.py "$PWD" "$POLICY" axis; fi
+          if [ "$POLICY" = baseline ] || [ "$POLICY" = empty ]; then python3 validation/run-headless.py "$PWD" "$POLICY" discovery; fi
+          if [ "$POLICY" = baseline ] || [ "$POLICY" = cache ]; then
+            mode=baseline
+            if [ "$POLICY" = cache ]; then mode=cached; fi
+            xvfb-run -a "results/$POLICY/splash" "$PWD/fixture-home" "$mode" | tee "results/$POLICY/splash-verification.log"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-reports-${{ matrix.policy }}
+          path: |
+            results/**/*-verification.json
+            results/**/*-verification.log
