@@ -124,8 +124,8 @@ void Window::input(InputConfig* config, Input input)
 	if(input.type == TYPE_AXIS && config->isConfigured() &&
 		Settings::getInstance()->getBool("IgnoreUnmappedJoystickAxes") && config->getMappedTo(axis).empty())
 	{
-		if(!mSleeping && !mRenderScreenSaver && peekGui())
-			peekGui()->input(config, input);
+		if(!mSleeping && !mRenderScreenSaver && peekGui() && peekGui()->input(config, input))
+			mTimeSinceLastInput = 0;
 		return;
 	}
 
