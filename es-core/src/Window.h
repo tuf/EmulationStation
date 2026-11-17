@@ -66,6 +66,9 @@ public:
 
 	void renderLoadingScreen(std::string text, float percent = -1, unsigned char opacity = 255);
 
+	// Release the cached image after the final loading-screen draw.
+	void endLoadingScreen();
+
 	void renderHelpPromptsEarly(); // used to render HelpPrompts before a fade
 	void setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpStyle& style);
 

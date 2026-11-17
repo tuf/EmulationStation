@@ -99,7 +99,7 @@ bool Window::init()
 
 void Window::deinit()
 {
-	mLoadingScreen.reset();
+	endLoadingScreen();
 
 	// Hide all GUI elements on uninitialisation - this disable
 	for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
@@ -208,9 +208,6 @@ void Window::update(int deltaTime)
 
 void Window::render()
 {
-	// The first regular frame ends the loading phase.
-	mLoadingScreen.reset();
-
 	Transform4x4f transform = Transform4x4f::Identity();
 
 	mRenderedHelpPrompts = false;
@@ -278,6 +275,11 @@ bool Window::getAllowSleep()
 void Window::setAllowSleep(bool sleep)
 {
 	mAllowSleep = sleep;
+}
+
+void Window::endLoadingScreen()
+{
+	mLoadingScreen.reset();
 }
 
 void Window::renderLoadingScreen(std::string text, float percent, unsigned char opacity)

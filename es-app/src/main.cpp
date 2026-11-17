@@ -407,6 +407,7 @@ int main(int argc, char* argv[])
 
 	if(splashScreen)
 		window.renderLoadingScreen("Done.");
+	window.endLoadingScreen();
 
 	InputManager::getInstance()->init();
 
