@@ -32,6 +32,7 @@ jobs:
         if: matrix.policy == 'axis'
         run: |
           git -C source apply ../harness/contribution-tests/axis-default.patch
+          git -C source add -u
           test "$(git -C source write-tree)" = "71880b1a904e46a9538e2d6ef9b47060c2ea1291"
       - name: Dependencies
         run: |
