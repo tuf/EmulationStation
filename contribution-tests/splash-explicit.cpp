@@ -1,4 +1,5 @@
 #include "HelpPrompt.h"
+#include "InputConfig.h"
 #include <memory>
 #include <vector>
 #define private public
