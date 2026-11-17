@@ -28,12 +28,12 @@ jobs:
           ref: ${{ github.sha }}
           path: harness
           sparse-checkout: contribution-tests
-      - name: Apply proposed axis revision
-        if: matrix.policy == 'axis'
+      - name: Apply proposed splash cleanup
+        if: matrix.policy == 'cache'
         run: |
-          git -C source apply ../harness/contribution-tests/axis-default.patch
+          git -C source apply ../harness/contribution-tests/splash-explicit.patch
           git -C source add -u
-          test "$(git -C source write-tree)" = "71880b1a904e46a9538e2d6ef9b47060c2ea1291"
+          test "$(git -C source write-tree)" = "003411d4cc6eb42872b7518e6681e9583984ca63"
       - name: Dependencies
         run: |
           sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
@@ -58,6 +58,7 @@ jobs:
             cache) probes="splash" ;;
           esac
           if [ "$POLICY" = axis ]; then cp validation/axis-default.cpp validation/axis.cpp; fi
+          if [ "$POLICY" = cache ]; then cp validation/splash-explicit.cpp validation/splash.cpp; fi
           python3 validation/build-probes.py "$PWD" "$POLICY" $probes
           if [ "$POLICY" = baseline ] || [ "$POLICY" = axis ]; then python3 validation/run-headless.py "$PWD" "$POLICY" axis; fi
           if [ "$POLICY" = baseline ] || [ "$POLICY" = empty ]; then python3 validation/run-headless.py "$PWD" "$POLICY" discovery; fi

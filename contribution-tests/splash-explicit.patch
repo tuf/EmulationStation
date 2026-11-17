@@ -1,0 +1,73 @@
+diff --git a/es-app/src/main.cpp b/es-app/src/main.cpp
+index f214050..43ff1cb 100644
+--- a/es-app/src/main.cpp
++++ b/es-app/src/main.cpp
+@@ -407,6 +407,7 @@ int main(int argc, char* argv[])
+ 
+ 	if(splashScreen)
+ 		window.renderLoadingScreen("Done.");
++	window.endLoadingScreen();
+ 
+ 	InputManager::getInstance()->init();
+ 
+diff --git a/es-app/src/views/ViewController.cpp b/es-app/src/views/ViewController.cpp
+index 3d5079a..428c9a2 100644
+--- a/es-app/src/views/ViewController.cpp
++++ b/es-app/src/views/ViewController.cpp
+@@ -78,6 +78,7 @@ void ViewController::goToStart()
+ void ViewController::ReloadAndGoToStart()
+ {
+ 	mWindow->renderLoadingScreen("Loading...");
++	mWindow->endLoadingScreen();
+ 	ViewController::get()->reloadAll();
+ 	ViewController::get()->goToStart();
+ }
+diff --git a/es-core/src/Window.cpp b/es-core/src/Window.cpp
+index ee11cb5..b7694bb 100644
+--- a/es-core/src/Window.cpp
++++ b/es-core/src/Window.cpp
+@@ -99,7 +99,7 @@ bool Window::init()
+ 
+ void Window::deinit()
+ {
+-	mLoadingScreen.reset();
++	endLoadingScreen();
+ 
+ 	// Hide all GUI elements on uninitialisation - this disable
+ 	for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
+@@ -208,9 +208,6 @@ void Window::update(int deltaTime)
+ 
+ void Window::render()
+ {
+-	// The first regular frame ends the loading phase.
+-	mLoadingScreen.reset();
+-
+ 	Transform4x4f transform = Transform4x4f::Identity();
+ 
+ 	mRenderedHelpPrompts = false;
+@@ -280,6 +277,11 @@ void Window::setAllowSleep(bool sleep)
+ 	mAllowSleep = sleep;
+ }
+ 
++void Window::endLoadingScreen()
++{
++	mLoadingScreen.reset();
++}
++
+ void Window::renderLoadingScreen(std::string text, float percent, unsigned char opacity)
+ {
+ 	Transform4x4f trans = Transform4x4f::Identity();
+diff --git a/es-core/src/Window.h b/es-core/src/Window.h
+index 4f959cc..f851421 100644
+--- a/es-core/src/Window.h
++++ b/es-core/src/Window.h
+@@ -66,6 +66,9 @@ public:
+ 
+ 	void renderLoadingScreen(std::string text, float percent = -1, unsigned char opacity = 255);
+ 
++	// Release the cached image after the final loading-screen draw.
++	void endLoadingScreen();
++
+ 	void renderHelpPromptsEarly(); // used to render HelpPrompts before a fade
+ 	void setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpStyle& style);
+ 
