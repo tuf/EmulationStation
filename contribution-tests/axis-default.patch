@@ -1,0 +1,48 @@
+diff --git a/es-app/src/guis/GuiGeneralScreensaverOptions.cpp b/es-app/src/guis/GuiGeneralScreensaverOptions.cpp
+index bc39fad..78ff7a1 100644
+--- a/es-app/src/guis/GuiGeneralScreensaverOptions.cpp
++++ b/es-app/src/guis/GuiGeneralScreensaverOptions.cpp
+@@ -25,12 +25,6 @@ GuiGeneralScreensaverOptions::GuiGeneralScreensaverOptions(Window* window, const
+ 	addWithLabel("SCREENSAVER CONTROLS", ss_controls);
+ 	addSaveFunc([ss_controls] { Settings::getInstance()->setBool("ScreenSaverControls", ss_controls->getState()); });
+ 
+-	// Opt in: preserve waking with any axis by default.
+-	auto ignore_axes = std::make_shared<SwitchComponent>(mWindow);
+-	ignore_axes->setState(Settings::getInstance()->getBool("IgnoreUnmappedJoystickAxes"));
+-	addWithLabel("IGNORE UNMAPPED JOYSTICK AXES", ignore_axes);
+-	addSaveFunc([ignore_axes] { Settings::getInstance()->setBool("IgnoreUnmappedJoystickAxes", ignore_axes->getState()); });
+-
+ 	// screensaver behavior
+ 	auto screensaver_behavior = std::make_shared< OptionListComponent<std::string> >(mWindow, "SCREENSAVER BEHAVIOR", false);
+ 	std::vector<std::string> screensavers;
+diff --git a/es-core/src/Settings.cpp b/es-core/src/Settings.cpp
+index ac2dbac..0e03d21 100644
+--- a/es-core/src/Settings.cpp
++++ b/es-core/src/Settings.cpp
+@@ -90,7 +90,6 @@ void Settings::setDefaults()
+ 	mIntMap["ScreenSaverTime"] = 5 * Settings::ONE_MINUTE_IN_MS;
+ 	mIntMap["SystemSleepTime"] = 0 * Settings::ONE_MINUTE_IN_MS;
+ 	mBoolMap["SystemSleepTimeHintDisplayed"] = false;
+-	mBoolMap["IgnoreUnmappedJoystickAxes"] = false;
+ 	mIntMap["ScraperResizeWidth"] = 400;
+ 	mIntMap["ScraperResizeHeight"] = 0;
+ 	#ifdef _RPI_
+diff --git a/es-core/src/Window.cpp b/es-core/src/Window.cpp
+index 21ca1a7..db6290c 100644
+--- a/es-core/src/Window.cpp
++++ b/es-core/src/Window.cpp
+@@ -117,12 +117,12 @@ void Window::textInput(const char* text)
+ void Window::input(InputConfig* config, Input input)
+ {
+ 	// Some controllers report activity on axes which have no mapped action.
+-	// Keep forwarding these to input configuration dialogs, but optionally do
++	// Keep forwarding these to input configuration dialogs, but do
+ 	// not treat them as activity or wake a screensaver/sleeping window.
+ 	Input axis = input;
+ 	axis.value = 0; // Check both directions, including a mapped axis release.
+ 	if(input.type == TYPE_AXIS && config->isConfigured() &&
+-		Settings::getInstance()->getBool("IgnoreUnmappedJoystickAxes") && config->getMappedTo(axis).empty())
++		config->getMappedTo(axis).empty())
+ 	{
+ 		if(!mSleeping && !mRenderScreenSaver && peekGui() && peekGui()->input(config, input))
+ 			mTimeSinceLastInput = 0;
